@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
-import sys
 
+# 2opt + 直前数経路を複数個保持してランダム確率で経路変更
+
+import sys
+import random
+
+# queueを使う
+from collections import deque
 from common import print_tour, read_input, calc_total_length
 from solver_greedy import solve as solve_greedy, distance 
 
-
-def solve(cities):
+def solve_sa(cities,tour):
     N = len(cities)
     
-    current_tour = solve_greedy(cities)
+    current_tour = tour
     # 経路に変化があったか示すフラグ
     changed = True
-    # debug
-    #r_cnt = 0
+
     while changed:
-        #if r_cnt % 100 == 0:
-        #    print(r_cnt)
-        #    r_cnt += 1
         changed = False
         # 変化量
         best_diff = 0
@@ -43,10 +44,31 @@ def solve(cities):
                 
     return current_tour
 
+
+def solve(r_cnt,cities):
+    N = len(cities)
+    best_tour = []
+    current_tour = solve_greedy(cities)
+    best_tour = solve_sa(cities,current_tour)
+    best_total = calc_total_length(cities,best_tour)
+
+    print(best_total)
+
+    for i in range(r_cnt):
+        random_tour = list(range(N))
+        random.shuffle(random_tour)
+        current_tour = solve_sa(cities,random_tour)
+        current_total = calc_total_length(cities,current_tour)
+        if current_total < best_total:
+            best_total = current_total
+            best_tour = current_tour
+            print(best_total)
+    return best_tour
+
 if __name__ == '__main__':
     assert len(sys.argv) > 1
     cities = read_input(sys.argv[1])
-    tour = solve(cities)
+    tour = solve(5,cities)
     print_tour(tour)
     total = calc_total_length(cities,tour)
     print("Total length is ",total)
